@@ -4,3 +4,4 @@
 
   * cv.lib highgui.lib cxcore.lib 
   * levmar.lib sba.lib blas.lib clapack.lib libF77.lib libI77.lib
+  * sba-1.4, levmar-2.2, opencv 1.1
