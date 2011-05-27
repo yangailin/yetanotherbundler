@@ -1,0 +1,6 @@
+#summary One-sentence summary of this page.
+
+= Library dependency =
+
+  * cv.lib highgui.lib cxcore.lib 
+  * levmar.lib sba.lib blas.lib clapack.lib libF77.lib libI77.lib
