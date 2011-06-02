@@ -1,3 +1,6 @@
+// Visual Studio command
+// -m sequence K.xml
+
 #include <stdio.h>
 #include <string.h>
 
