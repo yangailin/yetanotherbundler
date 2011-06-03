@@ -7,6 +7,10 @@ This file contains a sample program to read images and keypoints, then
    draw lines connecting matched keypoints.
 *************************************************************************/
 
+/// VISUAL STUDIO SETTING
+/// ARGUMENT
+/// -im1 test_images\img000.pgm -k1 test_images\img000.key -im2 test_images\img001.pgm -k2 test_images\img001.key > result.pgm
+
 
 #include "defs.h"
 

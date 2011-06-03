@@ -1,0 +1,1 @@
+siftDemoV4.exe -im1 test_images\img000.pgm -k1 test_images\img000.key -im2 test_images\img001.pgm -k2 test_images\img001.key > result.pgm
