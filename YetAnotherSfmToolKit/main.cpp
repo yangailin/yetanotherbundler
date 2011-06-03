@@ -1,5 +1,8 @@
-// Visual Studio command
-// -m sequence K.xml
+// Visual Studio setting.
+//
+// -m sequence K.xml -sift
+// 
+// Please set working directory as $(SolutionDir)
 
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +18,7 @@
  * 
  * \author Hyon Lim
  *
- * Usage : main [-s|-p] [<sequence-path>] [<K-matrix.xml>]
+ * Usage : main [-s|-p] [<sequence-path>] [<K-matrix.xml>] [-harris|-sift]
  *
  * - -s  SfM을 실행한다.
  * - -p  Sequence를 재생한다.
@@ -23,7 +26,14 @@
 int main(int argc,char *argv[])
 {
 	int option = -1;
+	int featureExtractor = HARRIS;	// Default value
 
+	/// Information
+	printf("================================\n");
+	printf(" Working path : %s\n",argv[1]);
+	printf("================================\n");
+
+	/// Input variable find
 	if (argc >= 3)
 	{
 		if(argc >= 4 && strcmp(argv[1], "-m") == 0)
@@ -34,12 +44,21 @@ int main(int argc,char *argv[])
 		{
 			option = doPlaySeq;
 		}
+
+		if(argc >= 5 && strcmp(argv[4], "-harris") == 0)
+		{
+			featureExtractor = HARRIS;
+		}
+		else if(argc >= 5 && strcmp(argv[4], "-sift") == 0)
+		{
+			featureExtractor = SIFT;
+		}
 	}
 
 	switch(option)
 	{
 		case doSFM:
-			SfM(argv[2], argv[3]);
+			SfM(argv[2], argv[3], featureExtractor);
 			break;
 
 		case doPlaySeq:

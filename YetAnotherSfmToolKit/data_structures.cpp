@@ -57,8 +57,51 @@ Corner *createCorner(int x, int y)
   corner->nbMatchForward = 0;
   corner->isInlier = false;
   corner->isFromSample = false;  
+
+  // Normal harris
+  corner->featureType = HARRIS;
+
+  //corner->scale = -1.0f;
+  //corner->orientation = 0.0f;
+  //corner->descriptor = NULL;
+  corner->siftKey = NULL;
   
   return corner;
+}
+
+Corner* createCornerSIFT(float x,float y, Keypoint siftKey)
+{
+	// Memory allocation
+	Corner *corner = (Corner *)malloc(sizeof(Corner));
+
+	// Initialization of variables
+	corner->imagePoint = cvCreateMat(3, 1, CV_64FC1);
+	cvmSet(corner->imagePoint, 0, 0, (double)x);
+	cvmSet(corner->imagePoint, 1, 0, (double)y);
+	cvmSet(corner->imagePoint, 2, 0, 1);
+	corner->nextPoint = NULL;
+	corner->matchNextFrame = NULL;
+	corner->matchPrevFrame = NULL;
+	corner->worldPoint = NULL;    
+	corner->SSDMatchPrevFrame = 0;
+	corner->nbMatchBackward = 0;
+	corner->nbMatchForward = 0;
+	corner->isInlier = false;
+	corner->isFromSample = false;  
+
+	// SIFT feature
+	corner->featureType = SIFT;
+	
+	//corner->scale = scale;
+	//corner->orientation = orientation;
+
+	// Descriptor copy
+	//corner->descriptor = (unsigned char*)malloc(sizeof(unsigned char)*descriptor_size);
+	//memcpy(corner->descriptor,descriptor,descriptor_size);
+	corner->siftKey = siftKey;
+
+
+	return corner;
 }
 
 Inlier *createInlier(Corner *point, double residualError)
@@ -193,8 +236,15 @@ void releaseCorner(Corner *corner)
   if (corner->worldPoint != NULL)
   {
     cvReleaseMat(&corner->worldPoint);
+
+	/// Descriptor memory allocation check
+	//if(corner->descriptor != NULL)
+	//{
+	//	free(corner->descriptor);
+	//}
     
     Corner *currentCorner = corner->matchNextFrame;
+
     while (currentCorner != NULL) // Set to NULL the 3D correspondence for each match
     {
       currentCorner->worldPoint = NULL;
