@@ -5,6 +5,20 @@
 #include <cxcore.h>
 #include <highgui.h>
 
+/// 특징점 추출기에 대한 옵션
+#define	HARRIS		0
+#define SIFT		1
+
+/* Data structure for a keypoint.  Lists of keypoints are linked
+   by the "next" field.
+*/
+typedef struct KeypointSt {
+  float row, col;             /* Subpixel location of keypoint. */
+  float scale, ori;           /* Scale and orientation (range [-PI,PI]) */
+  unsigned char *descrip;     /* Vector of descriptor values */
+  struct KeypointSt *next;    /* Pointer to next keypoint in list. */
+} *Keypoint;
+
 typedef struct sequence_t
 {
   /// head of the list of frames
@@ -89,6 +103,15 @@ typedef struct corner_t
   
   /// true if the corner has been selected in the random sample used to compute a homography
   bool isFromSample;
+
+  /// For the SIFT and its variant (feature transform algorithm)
+  //float scale;
+  //float orientation;
+  //unsigned char *descriptor;
+
+  int featureType; /// Harris, SIFT, etc.
+
+  Keypoint siftKey;
   
 } Corner;
 
@@ -129,6 +152,7 @@ typedef struct inlier_t
 Sequence *createSequence();
 Frame *createFrame(IplImage *image);
 struct corner_t *createCorner(int x, int y);
+struct corner_t *createCornerSIFT(float x,float y,Keypoint siftKey);
 struct inlier_t *createInlier(struct corner_t *point, double residualError);
 struct homography_t *createHomography(CvMat *H);
 

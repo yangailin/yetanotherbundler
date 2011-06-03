@@ -4,7 +4,7 @@
 #include "matching.h"
 #include "visualization.h"
 
-void SfM(char *seqPath, char *KMatPath)
+void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 {
 	CvMat *K = (CvMat *)cvLoad(KMatPath); // load the calibration matrix
 
@@ -32,9 +32,16 @@ void SfM(char *seqPath, char *KMatPath)
 	printf("Loading images in %s\n", seqPath);
 
 	char fileName[200];
+	char siftKeyName[0xff];
+	char cmdArgs[0xff];	/// Command argument for SIFT
+	int result;
+
 	IplImage *image;
 	Frame *currentFrame;
 
+	/************************************************************************************
+	 * Extract possible corners in a frame. Peform to all images in the sequence.
+	************************************************************************************/
 	while (true) // load the sequence
 	{
 		sprintf(fileName, "%s/img%.3d.jpeg", seqPath, sequence->nbFrames);
@@ -49,7 +56,40 @@ void SfM(char *seqPath, char *KMatPath)
 		printf("corner detection... ");
 		fflush(stdout);
 
-		findCorners(currentFrame); // detect corner points in the current image
+		/// Select which corner extractor is implemented.
+		if(featureExtractor == HARRIS)
+		{
+			findCorners(currentFrame); // detect corner points in the current image
+		}
+		else if(featureExtractor == SIFT) /// SIFT Related function
+		{
+			/// siftWin32.exe
+			sprintf(fileName,"%s/img%.3d.pgm",seqPath,sequence->nbFrames);
+			sprintf(siftKeyName,"%s/img%.3d.key",seqPath,sequence->nbFrames);
+			sprintf(cmdArgs,"sift_bin\\siftWin32.exe <%s > %s",fileName,siftKeyName);
+
+			// Test wheter the key file exist or not.
+			FILE *testfp = fopen(siftKeyName,"rb");
+
+			if(testfp != NULL)
+			{
+				fseek(testfp, 0L, SEEK_END); 
+				long sz = ftell(testfp); 
+
+				if(sz == 0)
+				{
+					fclose(testfp);
+					result = system(cmdArgs);
+				}
+			}
+			else
+			{
+				result = system(cmdArgs);
+			}
+
+			/// do more job please. as same as findCorners.
+			findSIFT(currentFrame,siftKeyName);
+		}
 
 		printf("done (%d corners found)\n", currentFrame->nbPoints);
 
@@ -90,8 +130,16 @@ void SfM(char *seqPath, char *KMatPath)
 		printf("  - research of putative correspondences... ");
 		fflush(stdout);
 
-		findCorrespondences(currentFrame); // find putative correspondences between
-									   // this frame and the next frame
+		if(featureExtractor == HARRIS)
+		{
+			findCorrespondences(currentFrame); // find putative correspondences between
+											   // this frame and the next frame
+		}
+		else if(featureExtractor == SIFT) /// SIFT Related function
+		{
+			// do sift related match.
+			matchSIFT(currentFrame);
+		}
 
 		printf("done (%d correspondences found)\n", currentFrame->nbMatchPoints);
 

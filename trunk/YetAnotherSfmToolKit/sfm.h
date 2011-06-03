@@ -2,7 +2,8 @@
 #define SFM_H_
 
 #include "nonlinear.h"
+#include "sift.h"
 
-void SfM(char *seqPath, char *KMatPath);
+void SfM(char *seqPath, char *KMatPath,int featureExtractor);
 
 #endif

@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sift.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\utils.cpp"
 				>
 			</File>
@@ -232,6 +236,10 @@
 			</File>
 			<File
 				RelativePath=".\sfm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sift.h"
 				>
 			</File>
 			<File
