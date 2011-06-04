@@ -69,13 +69,16 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 			sprintf(cmdArgs,"sift_bin\\siftWin32.exe <%s > %s",fileName,siftKeyName);
 
 			// Test wheter the key file exist or not.
-			FILE *testfp = fopen(siftKeyName,"rb");
+			FILE *testfp = fopen(siftKeyName,"r");
 
+			/// 만약에 파일이 있으면 굳이 읽어들이지 않는다.
 			if(testfp != NULL)
 			{
+				/// 파일 용량을 얻어오는 부분
 				fseek(testfp, 0L, SEEK_END); 
 				long sz = ftell(testfp); 
 
+				/// 파일이 완벽하지 못할때 한번더 수행한다.
 				if(sz == 0)
 				{
 					fclose(testfp);
@@ -156,7 +159,7 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		printf("  - optimization of the homography and guided matching... ");
 		fflush(stdout);
 
-		int nbCycles = optimHGuidMatchCycle(currentFrame); // cycle of optimization of the homography
+		int nbCycles = optimHGuidMatchCycle(currentFrame,featureExtractor); // cycle of optimization of the homography
 													   // and research of further point matches
 
 		printf("done (%d inliers found - %d cycle(s))\n", currentFrame->nbMatchPoints, nbCycles);

@@ -4,7 +4,7 @@
    from one image and find its closest match in the second set of
    keypoints.  Then write the result to a file.
 */
-void matchSIFT(Frame *frame, CvMat *H)
+void matchSIFT(Frame *frame, CvMat *H,float proximWindowRadius,double maxDist)
 {
 	//Keypoint k, match;
 	//Keypoint minkey = NULL;
@@ -30,20 +30,43 @@ void matchSIFT(Frame *frame, CvMat *H)
 		{
 			Keypoint k2 = currentPointFrame2->siftKey;
 
-			/// do something useful
-			dsq = DistSquared(k1, k2);
+			/// Distance constraint
+			// look for corresponding points in a window around the point in the second frame
+			if ((k2->col >= k1->col - proximWindowRadius) && (k2->col <= k1->col + proximWindowRadius) &&
+				(k2->row >= k1->row - proximWindowRadius) && (k2->row <= k1->row + proximWindowRadius))
+			{
+				bool distOk = true;	/// 일단 distOk 라는 변수 설정함.
 
-			if (dsq < distsq1)
-			{
-				distsq2 = distsq1;
-				distsq1 = dsq;
-				//minkey = k2;
-				correspondence = currentPointFrame2;
-			} 
-			else if (dsq < distsq2) 
-			{
-				distsq2 = dsq;
-			}
+				/// When homography is available.
+				if(H != NULL)
+				{
+					/// Guided matching.
+					double dist = findDistance(currentPointFrame1->imagePoint,currentPointFrame2->imagePoint, H);
+
+					if (dist > maxDist)
+					{
+						distOk = false; // the condition on the distance is not satisfied
+					}
+				}
+
+				if(distOk == true)
+				{
+					/// do something useful
+					dsq = DistSquared(k1, k2);
+
+					if (dsq < distsq1)
+					{
+						distsq2 = distsq1;
+						distsq1 = dsq;
+						//minkey = k2;
+						correspondence = currentPointFrame2;
+					} 
+					else if (dsq < distsq2) 
+					{
+						distsq2 = dsq;
+					}
+				}// end of distOk
+			} // end if in proxim windows
 
 			currentPointFrame2 = currentPointFrame2->nextPoint; 
 		}
@@ -69,7 +92,7 @@ void matchSIFT(Frame *frame, CvMat *H)
 
 		currentPointFrame1 = currentPointFrame1->nextPoint;
 
-		printf("%d\n",count++);
+		//printf("%d\n",count++);
 	}
 
 #if 0
@@ -116,13 +139,17 @@ void findSIFT(Frame *frame,char* keyFileName)
 
 	kPt = ReadKeyFile(keyFileName);
 
+	/// 모든 링크드리스트를 방문하면서, corner를 등록한다.
 	for (k= kPt; k != NULL; k = k->next)
 	{
-		Corner *point = createCornerSIFT(k->col,k->row,kPt);
+		//printf("%x\n",&k->next);
+		Corner *point = createCornerSIFT(k->col,k->row,k);
 		addCorner(point, frame); // add point in the list
 	}
 }
 
+/// Linked list of sift desciptor that contains, loc, scale, ori, 128-dim is returned.
+/// Note : Keypoint structure (typedef of structure pointer)
 Keypoint ReadKeyFile(char *filename)
 {
     FILE *file;
@@ -150,28 +177,36 @@ Keypoint ReadKeys(FILE *fp)
     Keypoint k, keys = NULL;
 
     if (fscanf(fp, "%d %d", &num, &len) != 2)
-	FatalError("Invalid keypoint file beginning.");
+		FatalError("Invalid keypoint file beginning.");
 
     if (len != 128)
-	FatalError("Keypoint descriptor length invalid (should be 128).");
+		FatalError("Keypoint descriptor length invalid (should be 128).");
 
-    for (i = 0; i < num; i++) {
-      /* Allocate memory for the keypoint. */
-      k = (Keypoint) malloc(sizeof(struct KeypointSt));
-      k->next = keys;
-      keys = k;
-      k->descrip = (unsigned char*)malloc(len);
+    for (i = 0; i < num; i++) 
+	{
+		/* Allocate memory for the keypoint. */
+		k = (Keypoint) malloc(sizeof(struct KeypointSt));
+		k->next = keys;
+		keys = k;
 
-      if (fscanf(fp, "%f %f %f %f", &(k->row), &(k->col), &(k->scale),
-		 &(k->ori)) != 4)
-	FatalError("Invalid keypoint file format.");
+		k->descrip = (unsigned char*)malloc(len);
 
-      for (j = 0; j < len; j++) {
-	if (fscanf(fp, "%d", &val) != 1 || val < 0 || val > 255)
-	  FatalError("Invalid keypoint file value.");
-	k->descrip[j] = (unsigned char) val;
+		if (fscanf(fp, "%f %f %f %f", &(k->row), &(k->col), &(k->scale),&(k->ori)) != 4)
+			FatalError("Invalid keypoint file format.");
+
+		for (j = 0; j < len; j++) 
+		{
+			if (fscanf(fp, "%d", &val) != 1 || val < 0 || val > 255)
+				FatalError("Invalid keypoint file value.");
+
+			k->descrip[j] = (unsigned char) val;
       }
     }
+
+	/// Hyon Lim add this.
+	fclose(fp);
+
+	/// Linked list of sift desciptor that contains, loc, scale, ori, 128-dim is returned.
     return keys;
 }
 
