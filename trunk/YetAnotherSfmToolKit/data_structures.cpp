@@ -98,7 +98,7 @@ Corner* createCornerSIFT(float x,float y, Keypoint siftKey)
 	// Descriptor copy
 	//corner->descriptor = (unsigned char*)malloc(sizeof(unsigned char)*descriptor_size);
 	//memcpy(corner->descriptor,descriptor,descriptor_size);
-	corner->siftKey = siftKey;
+	corner->siftKey = siftKey; /// 여기서 계속 똑같은것만 할당되는구만...
 
 
 	return corner;

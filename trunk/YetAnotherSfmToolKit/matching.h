@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "nonlinear.h"
 #include "linear.h"
+#include "sift.h"
 
 /// constant used in the Harris corner detector (set for accurate det.)
 #define CORNERNESS_THRESH 10 
@@ -22,6 +23,6 @@ void findCorrespondences(Frame *frame, CvMat *H = NULL, double SSDMax = 100,
                          int proximWindowRadius = 50, int neighbWindowRadius = 10);
 
 int RANSAC(Frame *frame, double t = REPROJ_ERROR_THRESH);
-int optimHGuidMatchCycle(Frame *frame);
+int optimHGuidMatchCycle(Frame *frame,int featureExtractor);
 
 #endif

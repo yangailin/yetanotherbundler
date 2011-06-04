@@ -133,9 +133,10 @@ void findCorrespondences(Frame *frame, CvMat *H, double SSDMax, double maxDist,
         double SSD = computeSSD(frame->grayImage, neighborhoodWindows[0],
                                 frame->nextFrame->grayImage, neighborhoodWindows[1]);
         
+		/// SSD 값은 낮을수록 좋은것임.
         if (SSD < bestSSD) // if the SSD value is lower than the best value found until now
         {
-          bool distOk = true;
+          bool distOk = true;	/// 일단 distOk 라는 변수 설정함.
           
           if (H != NULL) // if a homography is given
           {
@@ -531,7 +532,7 @@ bool areCollinear(Corner *sample[SAMPLE_SIZE], double minDist, int maxCollinearP
 }
 
 
-int optimHGuidMatchCycle(Frame *frame)
+int optimHGuidMatchCycle(Frame *frame,int featureExtractor)
 {
   cleanFrame(frame, KEEP_INLIERS); // remove all outlying correspondences
   
@@ -573,8 +574,16 @@ int optimHGuidMatchCycle(Frame *frame)
     
     cleanFrame(frame, !KEEP_INLIERS); // remove all correspondences (even inliers)
     
-    findCorrespondences(frame, frame->H, 200); // re-evaluate the inlying correspondences
+	/// I should change here to SIFT routine.
+	if(featureExtractor == HARRIS)
+	{
+		findCorrespondences(frame, frame->H, 200); // re-evaluate the inlying correspondences
                                                // with the optimized homography
+	}
+	else if(featureExtractor == SIFT)
+	{
+		matchSIFT(frame,frame->H);
+	}
     
     Corner *currentPoint = frame->firstPoint;
     
@@ -588,6 +597,8 @@ int optimHGuidMatchCycle(Frame *frame)
     
     newNbInliers = frame->nbMatchPoints;
     
+	printf("Calculating epochs : %d\n",nbCycles);
+
     nbCycles++;
   }
   while (nbInliers != newNbInliers); // repeat as long as the number of inliers is not stable
