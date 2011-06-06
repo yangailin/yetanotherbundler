@@ -147,10 +147,68 @@ typedef struct inlier_t
   
 } Inlier;
 
+typedef struct keyFramesList_t
+{
+  /// head of the list of key frames
+  struct keyFrame_t *firstKF;
+  
+  /// tail of the list of key frames
+  struct keyFrame_t *lastKF;
+  
+  /// number of key frames in the list
+  int nbKF;
+  
+} KeyFramesList;
+
+typedef struct keyFrame_t
+{
+  /// frame selected as key frame
+  struct frame_t *frame;
+  
+  /// next key frame
+  struct keyFrame_t *nextKF;  
+  
+  /// previous key frame
+  struct keyFrame_t *prevKF;
+  
+  /// head of the list of key points
+  struct keyPoint_t *firstKP;
+  
+  /// tail of the list of key points
+  struct keyPoint_t *lastKP;
+  
+  /// fundamental matrix
+  CvMat *F;
+  
+  /// number of key points
+  int nbKP;
+  
+} KeyFrame;
+
+struct keyPoint_t
+{
+  /// corner noted as key point
+  struct corner_t *corner;
+  
+  /// next key point
+  struct keyPoint_t *nextKP;
+  
+  /// previous key point
+  struct keyPoint_t *prevKP;
+  
+  /// matching key point in the next key frame
+  struct keyPoint_t *matchNextKF;
+  
+  /// matching key point in the previous key frame
+  struct keyPoint_t *matchPrevKF;
+  
+};// KeyPoint;
+
 
 /// Function prototypes
 Sequence *createSequence();
 Frame *createFrame(IplImage *image);
+struct keyFramesList_t *createKeyFramesList();
 struct corner_t *createCorner(int x, int y);
 struct corner_t *createCornerSIFT(float x,float y,Keypoint siftKey);
 struct inlier_t *createInlier(struct corner_t *point, double residualError);
