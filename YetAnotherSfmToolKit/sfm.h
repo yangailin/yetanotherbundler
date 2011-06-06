@@ -1,6 +1,8 @@
 #ifndef SFM_H_
 #define SFM_H_
 
+#include <fstream>
+
 #include "nonlinear.h"
 #include "sift.h"
 
