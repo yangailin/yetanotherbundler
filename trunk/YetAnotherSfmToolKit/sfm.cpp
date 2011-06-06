@@ -97,6 +97,10 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		printf("done (%d corners found)\n", currentFrame->nbPoints);
 
 		addFrame(currentFrame, sequence);
+
+		//////////////////////////////////////////////////////////////////
+		/// TODO: In here, save data file of extracted corners structure.
+		//////////////////////////////////////////////////////////////////
 	}
 
 	if (sequence->nbFrames == 0) // no sequence found
@@ -140,7 +144,6 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		}
 		else if(featureExtractor == SIFT) /// SIFT Related function
 		{
-			// do sift related match.
 			matchSIFT(currentFrame);
 		}
 
@@ -149,8 +152,8 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		printf("  - computation of a homography using RANSAC... ");
 		fflush(stdout);
 
-		int nbInliers = RANSAC(currentFrame); // estimate a homography between this frame
-										  // and the next frame using the RANSAC estimator
+		int nbInliers = RANSAC(currentFrame);	// estimate a homography between this frame
+												// and the next frame using the RANSAC estimator
 
 		printf("done (%d inliers found)\n", nbInliers);
 
@@ -161,9 +164,15 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 
 		/// Here is the problem.
 		int nbCycles = optimHGuidMatchCycle(currentFrame,featureExtractor); // cycle of optimization of the homography
-													   // and research of further point matches
+																			// and research of further point matches
 
 		printf("done (%d inliers found - %d cycle(s))\n", currentFrame->nbMatchPoints, nbCycles);
+
+		//////////////////////////////////////////////////////////////////
+		/// TODO: Save obtaiined homography in XML files.
+		//////////////////////////////////////////////////////////////////
+		sprintf(fileName,"%s/img%.3d_H_mat.xml",seqPath,currentFrame->id);
+		cvSave(fileName,currentFrame->H);
 
 		showMatchingResults(currentFrame);
 
