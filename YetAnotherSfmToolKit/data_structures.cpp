@@ -37,6 +37,20 @@ Frame *createFrame(IplImage *image)
   return frame;
 }
 
+KeyFramesList *createKeyFramesList()
+{
+  // Memory allocation
+  KeyFramesList *keyFramesList = (KeyFramesList *)malloc(sizeof(KeyFramesList));
+  
+  // Initialization of variables
+  keyFramesList->firstKF = NULL;
+  keyFramesList->lastKF  = NULL;
+  keyFramesList->nbKF = 0;  
+  
+  return keyFramesList;
+}
+
+
 
 Corner *createCorner(int x, int y)
 {

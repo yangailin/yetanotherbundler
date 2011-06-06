@@ -531,103 +531,116 @@ bool areCollinear(Corner *sample[SAMPLE_SIZE], double minDist, int maxCollinearP
   return false; // the sample is not collinear
 }
 
-
+/// Guided matching phase. 여기에서는 구해진 Homography를 update하고 inlier를 점점
+/// 증가시키기로한다.
 int optimHGuidMatchCycle(Frame *frame,int featureExtractor)
 {
-  cleanFrame(frame, KEEP_INLIERS); // remove all outlying correspondences
-  
-  int nbInliers;
-  int newNbInliers;
-  
-  int nbCycles = 0;
-  
-  do // homography optimization - guided matching cycle
-  {    
-    nbInliers = frame->nbMatchPoints;
-    
-    if (nbInliers >= 5) // the Levenberg-Marquardt algorithm requires more unknows than parameters
-    {
-		CvMat **x1 = new CvMat*[nbInliers];
-		CvMat **x2 = new CvMat*[nbInliers];
-      //CvMat *x1[nbInliers];
-      //CvMat *x2[nbInliers];
-      
-      int count = 0;
-      Corner *currentPoint = frame->firstPoint;
-      
-      while (currentPoint != NULL)
-      {
-        if (currentPoint->matchNextFrame != NULL) // the point has a correspondence
-        {
-          x1[count] = currentPoint->imagePoint;
-          x2[count] = currentPoint->matchNextFrame->imagePoint;
-                  
-          count++;
-        }
-        
-        currentPoint = currentPoint->nextPoint;
-      }
-      
-      optimizeHomography(frame->H, x1, x2, nbInliers); // optimize the homography using
-                                                       // the Levenberg-Marquardt algorithm
-    }
-    
-    cleanFrame(frame, !KEEP_INLIERS); // remove all correspondences (even inliers)
-    
-	/// I should change here to SIFT routine.
-	if(featureExtractor == HARRIS)
-	{
-		findCorrespondences(frame, frame->H, 200); // re-evaluate the inlying correspondences
-                                               // with the optimized homography
-	}
-	else if(featureExtractor == SIFT)
-	{
-		matchSIFT(frame,frame->H);
-	}
-    
-    Corner *currentPoint = frame->firstPoint;
-    
-    while (currentPoint != NULL) // label points having a correspondence as inliers
-    {
-      if (currentPoint->matchNextFrame != NULL)
-        currentPoint->isInlier = true;
-      
-      currentPoint = currentPoint->nextPoint;
-    }
-    
-    newNbInliers = frame->nbMatchPoints;
-    
-	printf("Calculating epochs : %d\n",nbCycles);
+	cleanFrame(frame, KEEP_INLIERS); // remove all outlying correspondences
 
-    nbCycles++;
-  }
-  while (nbInliers != newNbInliers); // repeat as long as the number of inliers is not stable
+	int nbInliers;			/// 인라이어의 갯수
+	int newNbInliers;		/// 새로운 인라이어의 갯수
+
+	int nbCycles = 0;
   
-  return nbCycles; // return the number of iterations of the cycle
+	do // homography optimization - guided matching cycle
+	{
+		/// 현재의 inlier의 갯수를 가지고온다.
+		nbInliers = frame->nbMatchPoints;
+    
+		/// 최소 다섯개는 필요하다.
+		if (nbInliers >= 5) // the Levenberg-Marquardt algorithm requires more unknows than parameters
+		{
+			CvMat **x1 = new CvMat*[nbInliers];
+			CvMat **x2 = new CvMat*[nbInliers];
+			//CvMat *x1[nbInliers];
+			//CvMat *x2[nbInliers];
+      
+			int count = 0;
+
+			Corner *currentPoint = frame->firstPoint;
+
+			while (currentPoint != NULL)
+			{
+				if (currentPoint->matchNextFrame != NULL) // the point has a correspondence
+				{
+					x1[count] = currentPoint->imagePoint;
+					x2[count] = currentPoint->matchNextFrame->imagePoint;
+					      
+					count++;
+				}
+
+				currentPoint = currentPoint->nextPoint;
+			}
+      
+			/// Inlier만 가지고 H를 구한다.
+			optimizeHomography(frame->H, x1, x2, nbInliers); // optimize the homography using
+														   // the Levenberg-Marquardt algorithm
+		}
+    
+		cleanFrame(frame, !KEEP_INLIERS); // remove all correspondences (even inliers)
+	    
+		/// I should change here to SIFT routine.
+		if(featureExtractor == HARRIS)
+		{
+			findCorrespondences(frame, frame->H, 200); // re-evaluate the inlying correspondences
+												   // with the optimized homography
+		}
+		else if(featureExtractor == SIFT)
+		{
+			matchSIFT(frame,frame->H);
+		}
+    
+		Corner *currentPoint = frame->firstPoint;
+	    
+		while (currentPoint != NULL) // label points having a correspondence as inliers
+		{
+			if (currentPoint->matchNextFrame != NULL)
+				currentPoint->isInlier = true;
+	      
+			currentPoint = currentPoint->nextPoint;
+		}
+	    
+		newNbInliers = frame->nbMatchPoints;
+	    
+		printf("Calculating epochs : %d\n",nbCycles);
+
+		nbCycles++;
+
+	} while ((nbInliers != newNbInliers) && nbCycles < 5); // repeat as long as the number of inliers is not stable
+	/// 현재 여기서 계속 문제가 발생한다.
+  
+	return nbCycles; // return the number of iterations of the cycle
 }
 
+
+/// RANSAC의 과정에서 outlier라고 정해진 녀석들의 putative match point를 제거한다.
 void cleanFrame(Frame *frame, bool keepInliers)
 {
-  Corner *currentPoint = frame->firstPoint;
-  
-  while (currentPoint != NULL) // for each corner in the frame
-  {
-    if (!currentPoint->isInlier || !keepInliers) // if the point isn't an inlier or if
-                                                 // all correspondences must be removed
-    {
-      currentPoint->isInlier = false;
-      
-      if (currentPoint->matchNextFrame != NULL) // if the point is associated
-                                                // with a point in the next frame
-      {
-        // the link is broken
-        currentPoint->matchNextFrame->matchPrevFrame = NULL;
-        currentPoint->matchNextFrame = NULL;
-        
-        frame->nbMatchPoints--; // the number of match points (inliers) is decreased
-      }
-    }
-    
-    currentPoint = currentPoint->nextPoint;
-  }
+	/// 첫번째 특징점을 가져온다.
+	Corner *currentPoint = frame->firstPoint;
+
+	/// 모든 포인트를 순회하면서
+	while (currentPoint != NULL) // for each corner in the frame
+	{
+		/// 현재 node가, outlier이거나, keepInliers값이 false일 경우
+		if (!currentPoint->isInlier || !keepInliers) // if the point isn't an inlier or if
+													 // all correspondences must be removed
+		{
+			currentPoint->isInlier = false;
+
+			/// Outlier이지만, 다음 프레임과의 match가 존재 할 경우.
+			/// 강제로 해제한다.
+			if (currentPoint->matchNextFrame != NULL) // if the point is associated
+													// with a point in the next frame
+			{
+				// the link is broken
+				currentPoint->matchNextFrame->matchPrevFrame = NULL;
+				currentPoint->matchNextFrame = NULL;
+
+				frame->nbMatchPoints--; // the number of match points (inliers) is decreased
+			}
+		}
+
+		currentPoint = currentPoint->nextPoint;
+	}
 }

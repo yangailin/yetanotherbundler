@@ -37,49 +37,49 @@ void optimizeHomography(CvMat *H, CvMat *x1[], CvMat *x2[], int nbCorr)
 	char* vMask = new char[nbCorr];
 //  char vMask[nbCorr];
   
-  double* p = new double[9 + 2 * nbCorr];
+	double* p = new double[9 + 2 * nbCorr];
 //  double p[9 + 2 * nbCorr]; // the homography parameters + all points (in the first view) parameters
   
-  double* x = new double[4*nbCorr];
+	double* x = new double[4*nbCorr];
 //  double x[4 * nbCorr]; // all measured image points (in the two views)
   
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      p[i * 3 + j] = cvmGet(H, i, j); // set the initial parameters of the homography to optimize
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			p[i * 3 + j] = cvmGet(H, i, j); // set the initial parameters of the homography to optimize
   
-  for (int i = 0; i < nbCorr; i++)
-  {
-    vMask[i] = 1;
-    
-    CvPoint2D64f point1 = get2DPointf(x1[i]); // get the inhomogeneous coordinates
-    CvPoint2D64f point2 = get2DPointf(x2[i]); // of the image points in the two views
-    
-    // set the initial parameters of image points in the first view
-    p[9 + i * 2] = point1.x;
-    p[9 + i * 2 + 1] = point1.y;
-    
-    // set the measured image points in each view
-    x[i * 4] = point1.x;
-    x[i * 4 + 1] = point1.y;
-    x[i * 4 + 2] = point2.x;
-    x[i * 4 + 3] = point2.y;
-  }
+	for (int i = 0; i < nbCorr; i++)
+	{
+		vMask[i] = 1;
+
+		CvPoint2D64f point1 = get2DPointf(x1[i]); // get the inhomogeneous coordinates
+		CvPoint2D64f point2 = get2DPointf(x2[i]); // of the image points in the two views
+
+		// set the initial parameters of image points in the first view
+		p[9 + i * 2] = point1.x;
+		p[9 + i * 2 + 1] = point1.y;
+
+		// set the measured image points in each view
+		x[i * 4] = point1.x;
+		x[i * 4 + 1] = point1.y;
+		x[i * 4 + 2] = point2.x;
+		x[i * 4 + 3] = point2.y;
+	}
   
-  double opts[SBA_OPTSSZ]; // thresholds for the sparse Levenberg-Marquardt algorithm
+	double opts[SBA_OPTSSZ]; // thresholds for the sparse Levenberg-Marquardt algorithm
+
+	opts[0] = SBA_INIT_MU;
+	opts[1] = SBA_STOP_THRESH;
+	opts[2] = SBA_STOP_THRESH;
+	opts[3] = SBA_STOP_THRESH;
   
-  opts[0] = SBA_INIT_MU;
-  opts[1] = SBA_STOP_THRESH;
-  opts[2] = SBA_STOP_THRESH;
-  opts[3] = SBA_STOP_THRESH;
+	sparseLM(nbCorr, 1, 0, vMask, p, 9, 2, x, 4,           // optimize the homography matrix
+			homReprErr, NULL, NULL, 500, 0, opts, NULL);
   
-  sparseLM(nbCorr, 1, 0, vMask, p, 9, 2, x, 4,           // optimize the homography matrix
-            homReprErr, NULL, NULL, 500, 0, opts, NULL);
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			cvmSet(H, i, j, p[i * 3 + j]); // retrieve the optimized homography matrix
   
-  for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      cvmSet(H, i, j, p[i * 3 + j]); // retrieve the optimized homography matrix
-  
-  norm(H); // scale the matrix so that its norm becomes 1
+	norm(H); // scale the matrix so that its norm becomes 1
 }
 
 void homDataReprErr(double *p, double *hx, int m, int n, void *adata)

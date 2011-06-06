@@ -159,6 +159,7 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		printf("  - optimization of the homography and guided matching... ");
 		fflush(stdout);
 
+		/// Here is the problem.
 		int nbCycles = optimHGuidMatchCycle(currentFrame,featureExtractor); // cycle of optimization of the homography
 													   // and research of further point matches
 
@@ -170,4 +171,13 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 	}
 
 	showMatchingResults(sequence->lastFrame);
+
+	//***************************************************************
+	//* Reconstruction
+	//***************************************************************
+
+	KeyFramesList *keyFrames = createKeyFramesList();
+
+	printf("Selection of key frames... ");
+	fflush(stdout);
 }

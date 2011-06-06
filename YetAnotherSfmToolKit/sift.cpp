@@ -37,7 +37,7 @@ void matchSIFT(Frame *frame, CvMat *H,float proximWindowRadius,double maxDist)
 			{
 				bool distOk = true;	/// 일단 distOk 라는 변수 설정함.
 
-				/// When homography is available.
+				/// When homography is available. 이 때는 inlier 정보가 다 날라간 상태에서 들어온 것이다.
 				if(H != NULL)
 				{
 					/// Guided matching.
