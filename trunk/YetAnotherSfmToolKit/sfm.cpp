@@ -159,20 +159,115 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 
 		showMatchingResults(currentFrame);
 
+		/// 여기에서 Optimization 하기 전꺼 저장.
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/Harris_H_%.3d_%.3d.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		else if(featureExtractor == SIFT)
+		{
+			sprintf(fileName,"%s/SIFT_H_%.3d_%.3d.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		
+		cvSave(fileName,currentFrame->H);
+
+		// H_001_002 format. This H transforms X2 = H_{21} X1;
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/Harris_H_%.3d_%.3d.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		else if(featureExtractor == SIFT)
+		{
+			sprintf(fileName,"%s/SIFT_H_%.3d_%.3d.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+
+		if(saveCvMat2MATLAB(currentFrame->H, fileName) < 0)
+		{
+			printf("Save Error!\n");
+		}
+		else
+		{
+			printf("H matrix for MATLAB is saved!");
+		}
+
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/Harris_pts_match_from_%.3d_to_%.3d.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
+		}
+		else if(featureExtractor == SIFT)
+		{
+			sprintf(fileName,"%s/SIFT_pts_match_from_%.3d_to_%.3d.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
+		}
+
+		if(saveInliersPts2MATLAB(currentFrame,fileName) < 0)
+		{
+			printf("Save inlier error!\n");
+		}
+		else
+		{
+			printf("Inlier list is saved. <x1.x, x1.y, x2.x, x2.y>\n");
+		}
+
 		printf("  - optimization of the homography and guided matching... ");
 		fflush(stdout);
-
+#if 1
 		/// Here is the problem.
 		int nbCycles = optimHGuidMatchCycle(currentFrame,featureExtractor); // cycle of optimization of the homography
 																			// and research of further point matches
 
 		printf("done (%d inliers found - %d cycle(s))\n", currentFrame->nbMatchPoints, nbCycles);
+#endif
 
 		//////////////////////////////////////////////////////////////////
 		/// TODO: Save obtaiined homography in XML files.
 		//////////////////////////////////////////////////////////////////
-		sprintf(fileName,"%s/img%.3d_H_mat.xml",seqPath,currentFrame->id);
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/Harris_H_%.3d_%.3d_optimized.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		else if(featureExtractor == SIFT)
+		{
+			sprintf(fileName,"%s/SIFT_H_%.3d_%.3d_optimized.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		
 		cvSave(fileName,currentFrame->H);
+
+		// H_001_002 format. This H transforms X2 = H_{21} X1;
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/Harris_H_%.3d_%.3d_optimized.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		else if(featureExtractor == SIFT)
+		{
+			sprintf(fileName,"%s/SIFT_H_%.3d_%.3d_optimized.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+
+		if(saveCvMat2MATLAB(currentFrame->H, fileName) < 0)
+		{
+			printf("Save Error!\n");
+		}
+		else
+		{
+			printf("H matrix for MATLAB is saved!");
+		}
+
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/Harris_pts_match_from_%.3d_to_%.3d_optimized.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
+		}
+		else if(featureExtractor == SIFT)
+		{
+			sprintf(fileName,"%s/SIFT_pts_match_from_%.3d_to_%.3d_optimized.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
+		}
+
+		if(saveInliersPts2MATLAB(currentFrame,fileName) < 0)
+		{
+			printf("Save inlier error!\n");
+		}
+		else
+		{
+			printf("Inlier list is saved. <x1.x, x1.y, x2.x, x2.y>\n");
+		}
 
 		showMatchingResults(currentFrame);
 

@@ -1,6 +1,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdio.h>
 #include "data_structures.h"
 
 void norm(CvMat *mat);
@@ -26,5 +27,9 @@ CvMat *getHomogeneous2DPoint(double x, double y);
 void normInhomogeneous(CvMat *mat);
 
 void scaleToInhomogeneous(CvMat *mat);
+
+/// MATLAB Utilities
+int saveCvMat2MATLAB(CvMat* mat, char* fileName);
+int saveInliersPts2MATLAB(Frame* frame,char* fileName);
 
 #endif
