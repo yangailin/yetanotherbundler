@@ -1,0 +1,9 @@
+This software was downloaded from
+http://www.artefact.tk/software/matlab/xml/
+
+  >> addpath /home/login/matlab/xmltree
+
+Under certain circumstances, you might need to recompile a C-MEX file used to accelerate the parsing. To do so, just run the following in @xmltree/private:
+
+  >> mex -O xml_findstr.c
+
