@@ -1,0 +1,7 @@
+Just run
+
+FIT3D_online_17082010/FIT3D_setup.m
+
+this toolbox was downloaded from
+
+http://www.fit3d.info/
