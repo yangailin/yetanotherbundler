@@ -29,7 +29,8 @@ function [F,Files] = getSIFT(directory,maxFrames,step, METHOD)
 
     % Obtain files in the directory
     files = dir(directory);
-    files = files(3:end);
+    %files = files(3:end);  % .svn 폴더가 자꾸 걸림. export 시에는 다시 바뀔수 있음에 유의한다.
+    files = files(4:end);
     
     % Reserve some space for the features. This saves time when a lot of
     % images are used.

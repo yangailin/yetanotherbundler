@@ -85,13 +85,14 @@ void setWarpedROI(IplImage* new_frame, IplImage* WarpedFrame, CvMat* homogCollec
 
 int main(int argc, char* argv[])
 {
+	int i;
 	int frameNum = 29;
 	char fileName[0xff];
 
 	IplImage** frames = new IplImage*[frameNum];
 	CvMat** H = new CvMat*[frameNum];
 
-	for(int i=0;i<frameNum;i++)
+	for(i=0;i<frameNum;i++)
 	{
 		sprintf(fileName, "data\\img%.3d.jpeg",i);
 
@@ -106,6 +107,12 @@ int main(int argc, char* argv[])
 		{
 			break;
 		}
+	}
+
+	if(i<2)
+	{
+		printf("Frame is not enough!\n");
+		return 0;
 	}
 
 	CvSize size = cvGetSize(frames[0]);
