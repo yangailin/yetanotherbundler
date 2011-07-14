@@ -3,6 +3,9 @@
 // -m sequence K.xml -sift
 // 
 // Please set working directory as $(SolutionDir)
+//
+// Set .exe output directory as 
+// $(SolutionDir)bin
 
 #include <stdio.h>
 #include <string.h>
@@ -18,7 +21,7 @@
  * 
  * \author Hyon Lim
  *
- * Usage : main [-s|-p] [<sequence-path>] [<K-matrix.xml>] [-harris|-sift]
+ * Usage : main [-s|-p] [<sequence-path>] [<K-matrix.xml>] [-harris|-sift|-surf]
  *
  * - -s  SfM을 실행한다.
  * - -p  Sequence를 재생한다.
@@ -52,6 +55,10 @@ int main(int argc,char *argv[])
 		else if(argc >= 5 && strcmp(argv[4], "-sift") == 0)
 		{
 			featureExtractor = SIFT;
+		}
+		else if(argc >= 5 && strcmp(argv[4], "-surf") == 0)
+		{
+			featureExtractor = SURF;
 		}
 	}
 

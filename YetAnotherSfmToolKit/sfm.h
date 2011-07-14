@@ -5,6 +5,7 @@
 
 #include "nonlinear.h"
 #include "sift.h"
+#include "surf.h"
 
 void SfM(char *seqPath, char *KMatPath,int featureExtractor);
 

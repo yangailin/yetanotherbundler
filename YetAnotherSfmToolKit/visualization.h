@@ -8,6 +8,6 @@
 #define VISUALIZATION "Visualization"
 #define LEGEND "Legend"
 
-void showMatchingResults(Frame *frame);
+void showMatchingResults(Frame *frame, char* fileName);
 
 #endif

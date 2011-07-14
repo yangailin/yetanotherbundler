@@ -21,7 +21,7 @@ void matchSIFT(Frame *frame, CvMat *H = NULL,float proximWindowRadius=50.0f,doub
 void findSIFT(Frame *frame, char* keyFileName);
 Keypoint ReadKeyFile(char *filename);
 Keypoint CheckForMatch(Keypoint key, Keypoint klist);
-int DistSquared(Keypoint k1, Keypoint k2);
+float DistSquared(Keypoint k1, Keypoint k2);
 void FatalError(char *fmt, ...);
 Keypoint ReadKeys(FILE *fp);
 
