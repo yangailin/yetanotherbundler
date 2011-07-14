@@ -9,7 +9,8 @@ void matchSIFT(Frame *frame, CvMat *H,float proximWindowRadius,double maxDist)
 	//Keypoint k, match;
 	//Keypoint minkey = NULL;
 	int count = 0;
-	int dsq, distsq1 = 100000000, distsq2 = 100000000;
+	float distsq1 = 100000000.0f, distsq2 = 100000000.0f;
+	float dsq;
 
 	Corner *correspondence = NULL;
 
@@ -189,7 +190,9 @@ Keypoint ReadKeys(FILE *fp)
 		k->next = keys;
 		keys = k;
 
-		k->descrip = (unsigned char*)malloc(len);
+		k->descrip = (float*)malloc(len*sizeof(float));
+		
+		k->descriptor_size = len;
 
 		if (fscanf(fp, "%f %f %f %f", &(k->row), &(k->col), &(k->scale),&(k->ori)) != 4)
 			FatalError("Invalid keypoint file format.");
@@ -199,7 +202,7 @@ Keypoint ReadKeys(FILE *fp)
 			if (fscanf(fp, "%d", &val) != 1 || val < 0 || val > 255)
 				FatalError("Invalid keypoint file value.");
 
-			k->descrip[j] = (unsigned char) val;
+			k->descrip[j] = (float) val;
       }
     }
 
@@ -245,16 +248,24 @@ Keypoint CheckForMatch(Keypoint key, Keypoint klist)
 
 /* Return squared distance between two keypoint descriptors.
 */
-int DistSquared(Keypoint k1, Keypoint k2)
+float DistSquared(Keypoint k1, Keypoint k2)
 {
-    int i, dif, distsq = 0;
-    unsigned char *pk1, *pk2;
+    int i;
+	int descriptor_size = 0;
+    float *pk1, *pk2;
+	float dif;
+	float distsq = 0;
 
     pk1 = k1->descrip;
     pk2 = k2->descrip;
 
-    for (i = 0; i < 128; i++) {
-      dif = (int) *pk1++ - (int) *pk2++;
+	descriptor_size = k1->descriptor_size;
+
+    for (i = 0; i < descriptor_size; i++) 
+	{
+	  //for (i = 0; i < 128; i++) {
+      //dif = (int) *pk1++ - (int) *pk2++;
+		dif = *pk1++ - *pk2++;
       distsq += dif * dif;
     }
     return distsq;

@@ -8,6 +8,7 @@
 /// 특징점 추출기에 대한 옵션
 #define	HARRIS		0
 #define SIFT		1
+#define SURF		2
 
 /* Data structure for a keypoint.  Lists of keypoints are linked
    by the "next" field.
@@ -15,7 +16,8 @@
 typedef struct KeypointSt {
   float row, col;             /* Subpixel location of keypoint. */
   float scale, ori;           /* Scale and orientation (range [-PI,PI]) */
-  unsigned char *descrip;     /* Vector of descriptor values */
+  int descriptor_size;
+  float *descrip;     /* Vector of descriptor values */
   struct KeypointSt *next;    /* Pointer to next keypoint in list. */
 } *Keypoint;
 

@@ -93,6 +93,34 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 			/// do more job please. as same as findCorners.
 			findSIFT(currentFrame,siftKeyName);
 		}
+		else if(featureExtractor == SURF)
+		{
+			sprintf(fileName,"%s/img%.3d.pgm",seqPath,sequence->nbFrames);
+			sprintf(siftKeyName,"%s/img%.3d.surf",seqPath,sequence->nbFrames);
+			sprintf(cmdArgs,"sift_bin\\surfWINDLLDemo.exe -i %s -o %s",fileName,siftKeyName);
+			
+			FILE *testfp = fopen(siftKeyName,"r");
+
+			if(testfp != NULL)
+			{
+				/// 파일 용량을 얻어오는 부분
+				fseek(testfp, 0L, SEEK_END); 
+				long sz = ftell(testfp); 
+
+				/// 파일이 완벽하지 못할때 한번더 수행한다.
+				if(sz == 0)
+				{
+					fclose(testfp);
+					result = system(cmdArgs);
+				}
+			}
+			else
+			{
+				result = system(cmdArgs);
+			}
+
+			findSURF(currentFrame,siftKeyName);
+		}
 
 		printf("done (%d corners found)\n", currentFrame->nbPoints);
 
@@ -146,6 +174,10 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		{
 			matchSIFT(currentFrame);
 		}
+		else if(featureExtractor == SURF)
+		{
+			matchSIFT(currentFrame);
+		}
 
 		printf("done (%d correspondences found)\n", currentFrame->nbMatchPoints);
 
@@ -157,16 +189,34 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 
 		printf("done (%d inliers found)\n", nbInliers);
 
-		showMatchingResults(currentFrame);
+		if(featureExtractor == HARRIS)
+		{
+			sprintf(fileName,"%s/HARRIS_features_RANSAC_%.3d.jpg",seqPath,currentFrame->id);
+		}
+		else if(featureExtractor == SIFT) /// SIFT Related function
+		{
+			sprintf(fileName,"%s/SIFT_features_RANSAC_%.3d.jpg",seqPath,currentFrame->id);
+		}
+		else if(featureExtractor == SURF)
+		{
+			sprintf(fileName,"%s/SURF_features_RANSAC_%.3d.jpg",seqPath,currentFrame->id);
+		}
+
+		/// 특징점 이미지 저장.
+		showMatchingResults(currentFrame,fileName);
 
 		/// 여기에서 Optimization 하기 전꺼 저장.
 		if(featureExtractor == HARRIS)
 		{
-			sprintf(fileName,"%s/Harris_H_%.3d_%.3d.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+			sprintf(fileName,"%s/HARRIS_H_%.3d_%.3d.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
 		}
 		else if(featureExtractor == SIFT)
 		{
 			sprintf(fileName,"%s/SIFT_H_%.3d_%.3d.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+		else if(featureExtractor == SURF)
+		{
+			sprintf(fileName,"%s/SURF_H_%.3d_%.3d.xml",seqPath,currentFrame->nextFrame->id,currentFrame->id);
 		}
 		
 		cvSave(fileName,currentFrame->H);
@@ -174,12 +224,17 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 		// H_001_002 format. This H transforms X2 = H_{21} X1;
 		if(featureExtractor == HARRIS)
 		{
-			sprintf(fileName,"%s/Harris_H_%.3d_%.3d.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+			sprintf(fileName,"%s/HARRIS_H_%.3d_%.3d.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
 		}
 		else if(featureExtractor == SIFT)
 		{
 			sprintf(fileName,"%s/SIFT_H_%.3d_%.3d.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
 		}
+		else if(featureExtractor == SURF)
+		{
+			sprintf(fileName,"%s/SURF_H_%.3d_%.3d.txt",seqPath,currentFrame->nextFrame->id,currentFrame->id);
+		}
+
 
 		if(saveCvMat2MATLAB(currentFrame->H, fileName) < 0)
 		{
@@ -192,11 +247,15 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 
 		if(featureExtractor == HARRIS)
 		{
-			sprintf(fileName,"%s/Harris_pts_match_from_%.3d_to_%.3d.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
+			sprintf(fileName,"%s/HARRIS_pts_match_from_%.3d_to_%.3d.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
 		}
 		else if(featureExtractor == SIFT)
 		{
 			sprintf(fileName,"%s/SIFT_pts_match_from_%.3d_to_%.3d.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
+		}
+		else if(featureExtractor == SURF)
+		{
+			sprintf(fileName,"%s/SURF_pts_match_from_%.3d_to_%.3d.txt",seqPath,currentFrame->id,currentFrame->nextFrame->id);
 		}
 
 		if(saveInliersPts2MATLAB(currentFrame,fileName) < 0)
@@ -210,13 +269,13 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 
 		printf("  - optimization of the homography and guided matching... ");
 		fflush(stdout);
-#if 1
+
+#if 0
 		/// Here is the problem.
 		int nbCycles = optimHGuidMatchCycle(currentFrame,featureExtractor); // cycle of optimization of the homography
 																			// and research of further point matches
 
 		printf("done (%d inliers found - %d cycle(s))\n", currentFrame->nbMatchPoints, nbCycles);
-#endif
 
 		//////////////////////////////////////////////////////////////////
 		/// TODO: Save obtaiined homography in XML files.
@@ -269,12 +328,30 @@ void SfM(char *seqPath, char *KMatPath,int featureExtractor)
 			printf("Inlier list is saved. <x1.x, x1.y, x2.x, x2.y>\n");
 		}
 
-		showMatchingResults(currentFrame);
+		sprintf(fileName,"%s/features_optimized_%.3d.jpg",seqPath,currentFrame->id);
+
+		showMatchingResults(currentFrame,fileName);
+#endif
+
+
 
 		currentFrame = currentFrame->nextFrame;
 	}
 
-	showMatchingResults(sequence->lastFrame);
+	if(featureExtractor == HARRIS)
+	{
+		sprintf(fileName,"%s/HARRIS_features_RANSAC_%.3d.jpg",seqPath,currentFrame->id);
+	}
+	else if(featureExtractor == SIFT) /// SIFT Related function
+	{
+		sprintf(fileName,"%s/SIFT_features_RANSAC_%.3d.jpg",seqPath,currentFrame->id);
+	}
+	else if(featureExtractor == SURF)
+	{
+		sprintf(fileName,"%s/SURF_features_RANSAC_%.3d.jpg",seqPath,currentFrame->id);
+	}
+
+	showMatchingResults(sequence->lastFrame,fileName);
 
 	//***************************************************************
 	//* Reconstruction

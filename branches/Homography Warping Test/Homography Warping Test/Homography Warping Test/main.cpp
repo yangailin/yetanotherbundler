@@ -101,7 +101,9 @@ int main(int argc, char* argv[])
 			break;
 		}
 
-		sprintf(fileName,"data\\img%.3d_H_mat.xml",i);
+		//sprintf(fileName,"data\\img%.3d_H_mat.xml",i);
+		sprintf(fileName,"data\\SURF_H_%.3d_%.3d.xml",i+1,i);
+		printf("%s\n",fileName);
 
 		if(!(H[i] = (CvMat*)cvLoad(fileName)))
 		{
@@ -135,7 +137,7 @@ int main(int argc, char* argv[])
 			//setWarpedROI(frames[i],WarpedFrame,HIdentity);
 			//setWarpedROI(frames[i],WarpedFrame,H[i]);
 
-			if ( (i == (frameNum-1)) || (i==1))
+			//if ( (i == (frameNum-1)) || (i==1))
 			cvWarpPerspective(frames[i],WarpedFrame,HIdentity);
 			
 			cvMatMulAdd(HIdentity,H[i],0,HIdentity);  // cvMatMulAdd(a,b,c,dst), dst = a*b+c
@@ -148,6 +150,10 @@ int main(int argc, char* argv[])
 
 			cvResetImageROI(WarpedFrame);
 			cvShowImage("Hi",WarpedFrame);
+
+			sprintf(fileName, "data\\warped_img%.3d.jpeg",i);
+			cvSaveImage(fileName,WarpedFrame);
+
 			cvWaitKey(1);
 		}
 	//}

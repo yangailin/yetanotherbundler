@@ -5,7 +5,7 @@ IplImage *createLegend(int nbLines);
 void writeLegendLine(IplImage *image, char *text, int line, int col,
                bool dot, CvScalar color = cvScalar(0, 0, 0));
 
-void showMatchingResults(Frame *frame)
+void showMatchingResults(Frame *frame, char* fileName)
 {
   Corner *currentPoint = frame->firstPoint;
   
@@ -67,6 +67,11 @@ void showMatchingResults(Frame *frame)
       if (keyChar == 'p') // pause 
         cvWaitKey();
     }
+  }
+
+  if(fileName != NULL)
+  {
+	  cvSaveImage(fileName,img);
   }
    
   cvReleaseImage(&img);
